@@ -449,6 +449,8 @@ body {
                                         </div>
                                         <div class="col-md-3">
                                             <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" id="hsn" name="hsn" onchange="checkhsn(this)" required>
+                                            <label id="hsn_error" style="color:red;"></label>
+                                            <label style="color: rgb(101, 3, 3);"></label>
                                             <div class="text-danger m-2" id="warnhsn"></div>
                                         </div>
                                         <div class="col-md-3">
@@ -1667,6 +1669,28 @@ $(document).ready(function () {
 
     });
 </script>
+
+<script>
+
+    $('#hsn').blur(function() {
+        var hsn = $(this).val();
+        $.ajax({
+            url: 'check_hsn_exists',
+            data: {
+                'hsn': hsn
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.exists) {
+                    $('#hsn_error').text('HSN already exists!');
+                } else {
+                    $('#hsn_error').text('');
+                }
+            }
+        });
+    });
+    
+    </script>
 
 
 {% endblock %}

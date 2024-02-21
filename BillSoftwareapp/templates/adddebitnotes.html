@@ -28,6 +28,7 @@
 
 
 
+
 <style>
      
         body {
@@ -181,10 +182,10 @@
         <!-- Left Side -->
         <div class="col-md-1"></div>
         <div class="col-md-5">
-            <label class="col-form-label">party</label>
+            <label class="col-form-label" for="customer">Party</label>
             <div class="d-flex">
                 <select name="customername" id="customer" class="form-control border-secondary">
-                    <option value="" selected hidden>Select</option>
+                    <option value="" selected hidden>Select or Search Party</option>
                     {% for c in Party %}
                         {% if c.cid_id == cmp.cid %}
                             <option value="{{ c.id }}">{{ c.party_name }}</option>
@@ -266,7 +267,7 @@
                                                             <td class="nnum" style="text-align: center; color: black;">1</td>
                                                             <td>
                                                                 <div class="d-flex">
-                                                                    <select name='product[]' id="product1" class="form-control border-secondary product" onchange="changeprd(this.id,this.value)" style="color: black; background-color: white;">
+                                                                    <select name='product[]' id="product1" class="form-control border-secondary product" onchange="changeprd(this.id,this.value)" style="color: black; background-color: white; width: 150px;">
                                                                         <option value="" selected hidden>Select Product</option>
                                                                         {% for i in item %}
                                                                             {% if i.cid_id == cmp.cid %} 
@@ -274,6 +275,7 @@
                                                                             {% endif %}
                                                                         {% endfor %}
                                                                     </select>
+                                                                    
                                                                     <button id="modal_closing" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newitem" data-bs-whatever="@mdo">
                                                                         <span class="fa fa-plus"></span>
                                                                     </button>
@@ -454,6 +456,8 @@
                                         <div class="col-md-4">
                                             <label class="col-form-label" style="color: black;">Mobile</label>
                                             <input type="number" class="form-control border-secondary" id="contact" name="contact" style="color: black;" onchange="checkphone(this)">
+                                            <label id="contact_error" style="color:red;"></label>
+                                            <label style="color: rgb(101, 3, 3);"></label>
                                             <div class="text-danger m-2" id="warnphone"></div>
                                             
                                         </div>
@@ -543,8 +547,10 @@
 
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <label class="col-form-label mt-4" for="partyemail" style="color: black;">Email</label>
-                                                            <input type="email" class="form-control border-secondary" id="partyemail" name="partyemail" style="color: black; background-color: white;" >
+                                                            <label class="col-form-label mt-4" for="email" style="color: black;">Email</label>
+                                                            <input type="email" class="form-control border-secondary" id="email" name="email" style="color: black; background-color: white;" >
+                                                            <label id="email_error" style="color:red;"></label>
+                                                            <label style="color: rgb(101, 3, 3);"></label>
                                                         </div>
                                                     </div>
 
@@ -651,6 +657,8 @@
                                 </div>
                                 <div class="col-md-3">
                                     <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" id="hsn" name="hsn" onchange="checkhsn(this)" required>
+                                    <label id="hsn_error" style="color:red;"></label>
+                                    <label style="color: rgb(101, 3, 3);"></label>
                                     <div class="text-danger m-2" id="warnhsn"></div>
                                 </div>
                                 <div class="col-md-3">
@@ -1037,7 +1045,7 @@
             url:"{% url 'savecustomer1' %}",
             data:{
                 name : $('#partyname').val(),
-                email : $("#partyemail").val(),
+                email : $("#email").val(),
                 contact :$("#contact").val(),
                 splystate : $("#splystate").val(),
                 baddress : $("#baddress").val(),
@@ -1550,6 +1558,49 @@ $('#contact').blur(function() {
 
 </script>
 
+<script>
+
+    $('#email').blur(function() {
+        var email = $(this).val();
+        $.ajax({
+            url: 'check_email_exists',
+            data: {
+                'email': email
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.exists) {
+                    $('#email_error').text('Email already exists!');
+                } else {
+                    $('#email_error').text('');
+                }
+            }
+        });
+    });
+    
+    </script>
+
+<script>
+
+    $('#hsn').blur(function() {
+        var hsn = $(this).val();
+        $.ajax({
+            url: 'check_hsn_exists',
+            data: {
+                'hsn': hsn
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.exists) {
+                    $('#hsn_error').text('HSN already exists!');
+                } else {
+                    $('#hsn_error').text('');
+                }
+            }
+        });
+    });
+    
+    </script>
 
 
 

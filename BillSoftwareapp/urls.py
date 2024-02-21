@@ -55,7 +55,10 @@ urlpatterns = [
     path('update_debitnote/<int:id>',views.update_debitnote,name='update_debitnote'),
     path('sharedebitToEmail/<int:id>',views.sharedebitToEmail,name='sharedebitToEmail'),
     path('share_paymentin_to_email/<int:id>',views.sharePaymentInToEmail,name='sharePaymentInToEmail'),
-    path('check_contact_exists',views.check_contact_exists,name='check_contact_exists')
+    path('check_contact_exists',views.check_contact_exists,name='check_contact_exists'),
+    path('check_email_exists',views.check_email_exists,name='check_email_exists'),
+    path('check_hsn_exists',views.check_hsn_exists,name='check_hsn_exists')
+
  
 
  

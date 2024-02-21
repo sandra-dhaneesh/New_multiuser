@@ -91,6 +91,7 @@ class BankModel(models.Model):
 class ItemModel(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     company = models.ForeignKey(company,on_delete= models.CASCADE,null=True,blank=True)
+    staff = models.ForeignKey(staff_details,on_delete= models.CASCADE,null=True,blank=True)
     item_name = models.CharField(max_length=255)
     item_hsn = models.PositiveIntegerField(null=True)
     item_unit = models.CharField(max_length=255)

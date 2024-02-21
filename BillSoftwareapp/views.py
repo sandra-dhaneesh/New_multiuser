@@ -500,6 +500,7 @@ def create_debitnotes(request):
     discount =  tuple(request.POST.getlist("discount[]"))
     total =  tuple(request.POST.getlist("total[]"))
     pdebitid = purchasedebit.objects.get(pdebitid=pdebt.pdebitid, company=cmp)
+    
 
 
 
@@ -571,41 +572,14 @@ def saveitem(request):
   if not hsn:
     hsn = None
 
-  itm = ItemModel(item_name=name, item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
+  itm = ItemModel(item_name=name,item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
                 item_purchase_price=cost_price,item_opening_stock=stock,item_current_stock=stock,item_at_price=itmprice,item_date=itmdate,
                 item_min_stock_maintain=minstock,company=cmp,user=cmp.user)
   itm.save() 
   return JsonResponse({'success': True})
 
 
-def saveitem1(request):
-  sid = request.session.get('staff_id')
-  staff =  staff_details.objects.get(id=sid)
-  cmp = company.objects.get(id=staff.company.id)
 
-  name = request.POST['name']
-  unit = request.POST['unit']
-  hsn = request.POST['hsn']
-  taxref = request.POST['taxref']
-  sell_price = request.POST['sell_price']
-  cost_price = request.POST['cost_price']
-  intra_st = request.POST['intra_st']
-  inter_st = request.POST['inter_st']
-
-  if taxref != 'Taxable':
-    intra_st = 'GST0[0%]'
-    inter_st = 'IGST0[0%]'
-
-  itmdate = request.POST.get('itmdate')
-  stock = request.POST.get('stock')
-  itmprice = request.POST.get('itmprice')
-  minstock = request.POST.get('minstock')
-
-  itm = ItemModel(item_name=name, item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
-                item_purchase_price=cost_price,item_opening_stock=stock,item_current_stock=stock,item_at_price=itmprice,item_date=itmdate,
-                item_min_stock_maintain=minstock,company=cmp,user=cmp.user)
-  itm.save() 
-  return JsonResponse({'success': True})
 
 def itemdetail(request):
   itmid = request.GET['id']
@@ -645,6 +619,10 @@ def savecustomer1(request):
         if party.objects.filter(contact=contact,company=cmp).exists():
             messages.info(request, 'Sorry, Contact Number already exists')
             return redirect('add_debitnote')
+        
+        elif party.objects.filter(email=email, company=cmp).exists():
+            messages.info(request, 'Sorry, Email already exists')
+            return redirect('add_debitnote')
         else:
             part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address,
                          email=email, openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
@@ -674,33 +652,43 @@ def cust_dropdown1(request):
   return JsonResponse({'id_list':id_list, 'party_list':party_list })
 
 def saveitem1(request):
-  sid = request.session.get('staff_id')
-  staff =  staff_details.objects.get(id=sid)
-  cmp = company.objects.get(id=staff.company.id)
+  if request.method == 'POST':
+    sid = request.session.get('staff_id')
+    staff =  staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
 
-  name = request.POST['name']
-  unit = request.POST['unit']
-  hsn = request.POST['hsn']
-  taxref = request.POST['taxref']
-  sell_price = request.POST['sell_price']
-  cost_price = request.POST['cost_price']
-  intra_st = request.POST['intra_st']
-  inter_st = request.POST['inter_st']
+    name = request.POST['name']
+    unit = request.POST['unit']
+    hsn = request.POST['hsn']
+    taxref = request.POST['taxref']
+    sell_price = request.POST['sell_price']
+    cost_price = request.POST['cost_price']
+    intra_st = request.POST['intra_st']
+    inter_st = request.POST['inter_st']
 
-  if taxref != 'Taxable':
-    intra_st = 'GST0[0%]'
-    inter_st = 'IGST0[0%]'
+    if taxref != 'Taxable':
+        intra_st = 'GST0[0%]'
+        inter_st = 'IGST0[0%]'
 
-  itmdate = request.POST.get('itmdate')
-  stock = request.POST.get('stock')
-  itmprice = request.POST.get('itmprice')
-  minstock = request.POST.get('minstock')
+    itmdate = request.POST.get('itmdate')
+    stock = request.POST.get('stock')
+    itmprice = request.POST.get('itmprice')
+    minstock = request.POST.get('minstock')
 
-  itm = ItemModel(item_name=name, item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
-                item_purchase_price=cost_price,item_opening_stock=stock,item_current_stock=stock,item_at_price=itmprice,item_date=itmdate,
-                item_min_stock_maintain=minstock,company=cmp,user=cmp.user)
-  itm.save() 
-  return JsonResponse({'success': True})
+    # Check if the HSN already exists
+    if ItemModel.objects.filter(item_hsn=hsn,company=cmp).exists():
+       messages.info(request, 'Sorry, HSN Number already exists')
+       return redirect('add_debitnote')
+    else:
+        itm = ItemModel(item_name=name,item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
+                    item_purchase_price=cost_price,item_opening_stock=stock,item_current_stock=stock,item_at_price=itmprice,item_date=itmdate,
+                    item_min_stock_maintain=minstock,company=cmp,user=cmp.user)
+        itm.save() 
+        return JsonResponse({'success': True})
+    
+  else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 
 def item_dropdowns(request):
   sid = request.session.get('staff_id')
@@ -1088,7 +1076,7 @@ def import_debitnote(request):
       for row_number2 in range(2, ep.max_row + 1):
         prdsheet = [ep.cell(row=row_number2, column=col_num).value for col_num in range(1, ep.max_column + 1)]
         if prdsheet[0] == row_number1:
-          itm = ItemModel.objects.get(item_name=prdsheet[1],item_hsn=prdsheet[2],company=cmp)
+          itm = ItemModel.objects.get(item_name=prdsheet[1],hsn=prdsheet[2],company=cmp)
           total=int(prdsheet[3])*int(itm.item_purchase_price) - int(prdsheet[4])
           
           purchasedebit1.objects.create(pdebit=pdebt,
@@ -1188,7 +1176,7 @@ def import_purchase_bill(request):
       for row_number2 in range(2, ep.max_row + 1):
         prdsheet = [ep.cell(row=row_number2, column=col_num).value for col_num in range(1, ep.max_column + 1)]
         if prdsheet[0] == row_number1:
-          itm = ItemModel.objects.get(item_name=prdsheet[1],item_hsn=int(prdsheet[2]),company=cmp)
+          itm = ItemModel.objects.get(item_name=prdsheet[1],hsn=int(prdsheet[2]),company=cmp)
           total=int(prdsheet[3])*int(itm.item_purchase_price) - int(prdsheet[4])
           PurchaseBillItem.objects.create(purchasebill=pbill,
                                 company=cmp,
@@ -1245,7 +1233,19 @@ def check_contact_exists(request):
     if party.objects.filter(contact=contact).exists():
         return JsonResponse({'exists': True})
     return JsonResponse({'exists':False})
+
+def check_email_exists(request):
+    email= request.GET.get('email')
+    if party.objects.filter(email=email).exists():
+        return JsonResponse({'exists': True})
+    return JsonResponse({'exists':False})
   
+
+def check_hsn_exists(request):
+    hsn= request.GET.get('hsn')
+    if ItemModel.objects.filter(item_hsn=hsn).exists():
+        return JsonResponse({'exists': True})
+    return JsonResponse({'exists':False})
 
 
   
