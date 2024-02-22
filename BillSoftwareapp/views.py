@@ -846,16 +846,11 @@ def edit_debitnote(request,id):
   partys = party.objects.filter(company=cmp,user=cmp.user)
   item = ItemModel.objects.filter(company=cmp,user=cmp.user)
   item_units = UnitModel.objects.filter(user=cmp.user,company=staff.company.id)
-  
   allmodules= modules_list.objects.filter(company=staff.company,status='New')
   pdebt = purchasedebit.objects.get(pdebitid=id,company=cmp)
   debtitem = purchasedebit1.objects.filter(pdebit=id,company=cmp)
- 
-  
-
-  
-
   ddate = pdebt.debitdate.strftime("%Y-%m-%d")
+
   context = {'staff':staff,  'allmodules':allmodules, 'pdebt':pdebt, 'debtitem':debtitem, 'partys':partys, 'item':item, 'item_units':item_units, 'ddate':ddate,'tod':tod}
   return render(request,'debitnoteedit.html',context)
 

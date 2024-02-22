@@ -1676,14 +1676,7 @@ $('#contact').blur(function() {
     });
 </script>
 
-<script>
-    $(document).ready(function() {
-        $('#customer').select2({
-            placeholder: 'Search for a party',
-            allowClear: true // Optional: allows clearing the selection
-        });
-    });
-</script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1699,7 +1692,15 @@ $('#contact').blur(function() {
 
 
 
-
+<script>
+    $(document).ready(function() {
+        $('#customer').select2({
+            placeholder: "Select or Search Party",
+            allowClear: true, // Adds an (x) icon to clear the selection
+            width: '100%' // Adjust the width as needed
+        });
+    });
+</script>
 
 
 {% endblock %}

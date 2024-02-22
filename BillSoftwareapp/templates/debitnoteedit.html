@@ -3,7 +3,27 @@
 {% load static %}
 
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="email_mobile_check.js"></script>
 
+
+<!-- Select2 CSS -->
+<link href="path_to_select2_css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery (necessary for Select2) -->
+<script src="path_to_jquery/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="path_to_select2_js/select2.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 
 
@@ -185,6 +205,8 @@ body {
                                             <div id="phonediv" {% if not pdebt.party.contact %}style="display: none;"{% endif %}>
                                                 <label class="col-form-label">Phone No. </label>
                                                 <input class="form-control border-secondary" name="phno" required id="cust_phno" style="color: black;background-color: white;" value="{{pdebt.party.contact}}" >
+                                                <label id="phn_error" style="color:red;"></label>
+                                                <label style="color: rgb(101, 3, 3);"></label>
                                             </div>
                                             
                                             <div id="addressdiv" {% if not pdebt.party.address %}style="display: none;"{% endif %}>
@@ -243,8 +265,8 @@ body {
                                                 </thead>
                                                 <tbody id="items-table-body">
                                                 {% for j in debtitem %}
-                                                    <tr id='addr0{{ forloop.counter }}'>
-                                                        <td style="text-align: center; width:2%" class="nnum">
+                                                <tr id='addr01'>
+                                                    <td class="nnum" style="text-align: center; color: black;">1</td>
                                                             {{ forloop.counter }}<input type="text"  name='id[]' value="{{ j.id }}" hidden>
                                                         </td>
 
@@ -260,7 +282,9 @@ body {
                                                                     {% endfor %}
                                                                     
                                                                 </select>&nbsp;&nbsp;&nbsp;
-                                                               
+                                                                <button id="modal_closing" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newitem" data-bs-whatever="@mdo">
+                                                                    <span class="fa fa-plus"></span>
+                                                                </button>
                                                             </div>
                                                         </td>
 
@@ -465,11 +489,10 @@ body {
                                             </select>
                                         </div>
                                     </div>
-
                                     <div>
                                         <p></p>
                                         <hr class="p-0 m-0">
-                                        <div style="background-color: rgba(0, 195, 255, 0.205);" class="p-3 pb-0 mb-0">
+                                        <div style="background-color:rgb(0, 0, 139,.397);" class="p-3 pb-0 mb-0">
                                             <div class="">
                                                 <div class="row pb-0 mb-0">
                                                     <div id="prc_" class="col text-center pb-2" >
@@ -481,7 +504,7 @@ body {
                                                 </div>
                                             </div>
                                         </div>
-
+        
                                         <div id="pricing_template" style="background-color: rgba(144, 211, 117, 0.098);">
                                             <div class="row">
                                                 <div class="col-sm-12  col-md-1"></div>
@@ -532,7 +555,7 @@ body {
                                                         </div>
                                                     </div>
                                                     <div class="text-start mt-5">
-                                                        <button id="next_btn" class="btn btn-primary bg-gradient" type="button">Next</button>
+                                                        <button id="next_btn" class="btn" style="background-color: darkblue; color: white;" type="button">Next</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -565,8 +588,8 @@ body {
                                                         </div>
                                                     </div>
                                                     <div class="text-start mt-5">
-                                                        <button id="prev_btn" class="btn btn-primary bg-gradient  me-3" type="button">PREVIOUS</button>
-                                                        <button class="btn btn-primary bg-gradient" type="button" id="itemsave">SAVE</button>
+                                                        <button id="prev_btn" class="btn" style="background-color: darkblue; color: white;" type="button">PREVIOUS</button>
+                                                        <button class="btn" style="background-color: darkblue; color: white;" type="button" id="itemsave" onclick="history.go(0)">SAVE</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -578,9 +601,7 @@ body {
                     </div> 
                 </div> 
             </div>
-        </div>
-
-                  
+                          
         <div class="modal fade" id="customercreation">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
@@ -1593,16 +1614,30 @@ $(document).ready(function () {
         $('#balance').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(adj)-parseFloat(adv)).toFixed(2));
     });
 
-    function checkhsn(element){
-        var hsninput = element.value;
-        var gstregexp = "[0-9]{6}";
-        if (hsninput.match(gstregexp)) {
-            document.getElementById('warnhsn').innerHTML = '';
-        } else {
-            document.getElementById('warnhsn').innerHTML = 'Please provide a valid HSN Number';
-            alert('Please provide a valid HSN Number');
+    function checkhsn(element) {
+    var hsninput = element.value;
+    var hsnRegExp = /^[0-9]{6}$/; // Regular expression to match 6-digit numbers
+
+    // Check if the HSN number is a 6-digit number
+    if (hsninput.match(hsnRegExp)) {
+        // Check if the HSN number already exists
+        var existingHSNNumbers = document.querySelectorAll('input[name="hsn"]');
+        for (var i = 0; i < existingHSNNumbers.length; i++) {
+            if (existingHSNNumbers[i] !== element && existingHSNNumbers[i].value === hsninput) {
+                document.getElementById('warnhsn').innerHTML = 'This HSN number already exists';
+                // Optionally, you might want to focus on the input field after showing the error.
+                element.focus();
+                return; // Exit the function if the HSN number already exists
+            }
         }
+        // If the HSN number is valid and not repeated, clear the warning message
+        document.getElementById('warnhsn').innerHTML = '';
+    } else {
+        document.getElementById('warnhsn').innerHTML = 'Please provide a valid 6-digit HSN Number';
+        // Optionally, you might want to focus on the input field after showing the error.
+        element.focus();
     }
+}
 
   
     
@@ -1669,7 +1704,6 @@ $(document).ready(function () {
 
     });
 </script>
-
 <script>
 
     $('#hsn').blur(function() {
@@ -1690,7 +1724,19 @@ $(document).ready(function () {
         });
     });
     
-    </script>
+</script>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('customersave').addEventListener('click', function() {
+            history.go(0);
+        });
+
+        document.getElementById('itemsave').addEventListener('click', function() {
+            history.go(0);
+        });
+    });
+</script>
 
 {% endblock %}
