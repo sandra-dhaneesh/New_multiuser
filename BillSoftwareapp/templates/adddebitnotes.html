@@ -555,6 +555,7 @@
                                                     </div>
 
                                                     <div class="text-start mt-5">
+                                                        <button id="prev_btn" class="btn" style="background-color: darkblue; color: white;" type="button">PREVIOUS</button>
                                                         <button id="gstnxt" class="btn" style="background-color: darkblue; color: white;" type="button">NEXT</button>
                                                     </div>
                                                 </div>
@@ -615,8 +616,8 @@
                                                     </div>
                                                     <div class="text-start mt-5">
                                                         <button id="fieldprev" class="btn" style="background-color: darkblue; color: white;" type="button">PREVIOUS</button>
-                                                        <button class="btn" style="background-color: darkblue; color: white;" type="button" id="customersave" onclick="history.go(0)">SAVE</button>
-                                                    </div>
+                                                        <button class="btn" type="button" style="background-color: darkblue; color: white;" id="customersave">SAVE</button>
+                                                    </div><br>
                                                 </div>
                                             </div>
                                         </div>
@@ -773,7 +774,7 @@
                                             </div>
                                             <div class="text-start mt-5">
                                                 <button id="prev_btn" class="btn" style="background-color: darkblue; color: white;" type="button">PREVIOUS</button>
-                                                <button class="btn" style="background-color: darkblue; color: white;" type="button" id="itemsave" onclick="history.go(0)">SAVE</button>
+                                                <button class="btn" style="background-color: darkblue; color: white;" type="button" id="itemsave" >SAVE</button>
                                             </div>
                                         </div>
                                     </div>
@@ -1073,6 +1074,7 @@
 
 
 
+
     function reloadCustomer() {
         $.ajax({
             url: "{% url 'cust_dropdown1' %}",
@@ -1084,6 +1086,7 @@
             success: function(response) {
                 id_list = response.id_list
                 party_list = response.party_list
+                console.log(party_list)
                 var $select = $(document.getElementById('customer'));
                 var selectize = $select[0].selectize;
                 for(let i=0; i<id_list.length;i++){
@@ -1092,7 +1095,6 @@
                 selectize.setValue("");
             },
         });
-     
     }
 
 
@@ -1149,23 +1151,27 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
 
             success: function(data) {
-                id_list = data.id_list
-                product_list = data.product_list
                 var table = document.getElementById('tab_logic');
                 var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
                 for (var i = 1; i <= rows.length; i++) {
-                    var $select = $(document.getElementById('product'+i));
-                    var selectize = $select[0].selectize;
-                    for(let i=0; i<id_list.length;i++){
-                        selectize.addOption({value:id_list[i],text:product_list[i]});
-                    }
+                    itmdropdown = document.getElementById('product'+i)
+                    var selectedIndex = itmdropdown.selectedIndex;
+                    var selectedOption = itmdropdown.options[selectedIndex];
+                    var selectedValue = selectedOption.value;
+                    var selectedText = selectedOption.text;
+                    
+                    var dropdown = $(`#product${i}`);
+                    dropdown.empty();
+                    dropdown.append(`<option ${selectedValue} selected hidden>${selectedText}</option>`);
+                    $.each(data, function(key, value) {
+                        dropdown.append($('<option></option>').attr('value', key).text(value).val(key));
+                    });
                 }
             },
             error: function(xhr, status, error) {
                 console.error(xhr.responseText);
             }
         });
-        
     }
 
 
@@ -1541,7 +1547,7 @@ $(document).ready(function () {
 $('#contact').blur(function() {
     var contact = $(this).val();
     $.ajax({
-        url: 'check_contact_exists',
+        url: "{% url 'check_contact_exists' %}",
         data: {
             'contact': contact
         },
@@ -1563,7 +1569,7 @@ $('#contact').blur(function() {
     $('#email').blur(function() {
         var email = $(this).val();
         $.ajax({
-            url: 'check_email_exists',
+            url: "{% url 'check_email_exists' %}",
             data: {
                 'email': email
             },
@@ -1600,7 +1606,7 @@ $('#contact').blur(function() {
         });
     });
     
-    </script>
+</script>
 
 
 
@@ -1686,6 +1692,13 @@ $('#contact').blur(function() {
 
         document.getElementById('itemsave').addEventListener('click', function() {
             history.go(0);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('.form-control border-secondary').select2({
+            theme: "classic"
         });
     });
 </script>

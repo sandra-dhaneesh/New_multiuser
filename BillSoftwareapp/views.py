@@ -691,17 +691,15 @@ def saveitem1(request):
 
 
 def item_dropdowns(request):
-  sid = request.session.get('staff_id')
-  staff =  staff_details.objects.get(id=sid)
-  cmp = company.objects.get(id=staff.company.id)
-  product = ItemModel.objects.filter(company=cmp,user=cmp.user)
-
-  id_list = []
-  product_list = []
-  for p in product:
-    id_list.append(p.id)
-    product_list.append(p.item_name)
-  return JsonResponse({'id_list':id_list, 'product_list':product_list})
+  if request.user.is_company:
+      cmp = request.user.company
+  else:
+      cmp = request.user.employee.company
+  options = {}
+  option_objects = ItemModel.objects.all(company=cmp)
+  for option in option_objects:
+      options[option.id] = [option.item_name]
+  return JsonResponse(options)
 
 def custdata1(request):
   cid = request.POST['id']
@@ -850,6 +848,8 @@ def edit_debitnote(request,id):
   pdebt = purchasedebit.objects.get(pdebitid=id,company=cmp)
   debtitem = purchasedebit1.objects.filter(pdebit=id,company=cmp)
   ddate = pdebt.debitdate.strftime("%Y-%m-%d")
+
+
 
   context = {'staff':staff,  'allmodules':allmodules, 'pdebt':pdebt, 'debtitem':debtitem, 'partys':partys, 'item':item, 'item_units':item_units, 'ddate':ddate,'tod':tod}
   return render(request,'debitnoteedit.html',context)
@@ -1238,6 +1238,7 @@ def check_email_exists(request):
 
 def check_hsn_exists(request):
     hsn= request.GET.get('hsn')
+    
     if ItemModel.objects.filter(item_hsn=hsn).exists():
         return JsonResponse({'exists': True})
     return JsonResponse({'exists':False})
