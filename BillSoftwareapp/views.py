@@ -475,14 +475,9 @@ def create_debitnotes(request):
                       pdebitid=request.POST.get('pdebitid'),
                       debitdate=request.POST.get('debitdate'),
                       supply=request.POST.get('placosupply'),
-                      payment_type=request.POST.get("method"),
-                      cheque_no=request.POST.get("cheque_id"),
-                      upi_no=request.POST.get("upi_id"),
                       billno=request.POST.get("bill_no"),
                       billdate=request.POST.get("billdate"), 
                       reference_number=request.POST.get("pdebitid"),
-                      paid_amount = request.POST.get("advance"),
-                      balance_amount = request.POST.get("balance"),
                       subtotal=float(request.POST.get('subtotal')),
                       igst = request.POST.get('igst'),
                       cgst = request.POST.get('cgst'),
@@ -884,11 +879,7 @@ def update_debitnote(request,id):
     pdebt.sgst = request.POST.get('sgst')
     pdebt.taxamount = request.POST.get("taxamount")
     pdebt.adjustment = request.POST.get("adj")
-    pdebt.payment_type = request.POST.get("method")
-    pdebt.cheque_no = request.POST.get("cheque_id")
-    pdebt.upi_no = request.POST.get("upi_id")
-    pdebt.paid_amount = request.POST.get("advance")
-    pdebt.balance_amount = request.POST.get("balance")
+
 
     pdebt.save()
 
@@ -1224,7 +1215,7 @@ def import_purchase_bill(request):
     return JsonResponse({'message': 'File upload Failed!'})
   
 def check_contact_exists(request):
-    contact = request.GET.get('contact')
+    contact = request.GET.get('contact')  
     if party.objects.filter(contact=contact).exists():
         return JsonResponse({'exists': True})
     return JsonResponse({'exists':False})

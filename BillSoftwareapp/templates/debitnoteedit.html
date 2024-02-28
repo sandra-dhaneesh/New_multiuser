@@ -208,10 +208,11 @@ body {
                                             {% endif %}
                                             <div id="phonediv" {% if not pdebt.party.contact %}style="display: none;"{% endif %}>
                                                 <label class="col-form-label">Phone No. </label>
-                                                <input class="form-control border-secondary" name="phno" required id="cust_phno" style="color: black;background-color: white;" value="{{pdebt.party.contact}}" >
+                                                <input class="form-control border-secondary" name="phno" required id="cust_phno" style="color: black;background-color: white;" value="{{ pdebt.party.contact }}" onchange="checkphone(this)">
                                                 <label id="phn_error" style="color:red;"></label>
                                                 <label style="color: rgb(101, 3, 3);"></label>
                                             </div>
+                                            
                                             
                                             <div id="addressdiv" {% if not pdebt.party.address %}style="display: none;"{% endif %}>
                                                 <label class="col-form-label">Billing Address</label>
@@ -436,7 +437,10 @@ body {
                                             <div class="col-md-5 mt-3 d-flex">
                                         
                                                 <input type="submit" class="btn btn-primary bg-gradient w-75" name="Save" value="UPDATE"></input>
+                                                
                                             </div>
+                                            
+                                        
                                         </div>
                                     </div>
 
@@ -951,14 +955,13 @@ $('#plosu').change(function() {
     })
 </script>
 
+
 <script>
     function validatedebit() {
         var customer = document.getElementById('customer').value;
         var plosu = document.getElementById('plosu').value;
-      
-        var pay_method = document.getElementById('pay_method').value;
-        var cheque_id = document.getElementById('cheque_id').value;
-        var upi_id = document.getElementById('upi_id').value;
+       
+
 
         if (customer === '') {
             alert('Please select a customer');
@@ -966,20 +969,6 @@ $('#plosu').change(function() {
         } else if(plosu === ''){
             alert('Please select place of supply');
             return false;
-        }
-        if (pay_method === ''){
-            alert('Please select a Payment Method');
-            return false;
-        }else if(pay_method === 'Cheque'){
-            if (cheque_id === ''){
-                alert('Add a cheque number');
-                return false;
-            }
-        }else if(pay_method === 'UPI'){
-            if (upi_id === ''){
-                alert('Add a UPI number');
-                return false;
-            }
         }
 
         var table = document.getElementById('tab_logic');
@@ -991,7 +980,7 @@ $('#plosu').change(function() {
                 alert('Select a product on row '+ i);
                 return false;
             }
-            if(qty === '0'){
+            if(qty === '' || qty =='0'){
                 alert('Add quantity in row '+ i);
                 return false;
             }
@@ -1772,6 +1761,47 @@ $(document).ready(function () {
             }
         });
     });
+</script>
+<script>
+$('#cust_phno').blur(function() {
+    var contact = $(this).val();
+    $.ajax({
+        url: "{% url 'check_contact_exists' %}",
+        data: {
+            'contact': contact
+        },
+        dataType: 'json',
+        success: function(data) {
+            if (data.exists) {
+                $('#phn_error').text('Phone number already exists!');
+            } else {
+                $('#phn_error').text('');
+            }
+        }
+    });
+});
+</script>
+
+<script>
+    var inputElement = document.getElementById('cust_phno');
+    inputElement.addEventListener('input', function() {
+        checkphone(this);
+    });
+
+    function checkphone(element) {
+        var phoneInput = element.value;
+        // Use anchors to ensure the phone number is exactly 10 digits.
+        var phoneRegExp = /^\d{10}$/;
+        var warnPhoneElement = document.getElementById('warnphone');
+
+        if (phoneRegExp.test(phoneInput)) {
+            warnPhoneElement.innerHTML = ''; // Clear the warning message if the input is valid
+        } else {
+            warnPhoneElement.innerHTML = 'Please provide a valid 10-digit Phone Number';
+            // Optionally, you might want to focus on the input field after showing the error.
+            element.focus();
+        }
+    }
 </script>
 
 {% endblock %}

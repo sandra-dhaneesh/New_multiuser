@@ -2,27 +2,6 @@
 {% block content %}
 {% load static %}
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="email_mobile_check.js"></script>
-
-
-<!-- Select2 CSS -->
-<link href="path_to_select2_css/select2.min.css" rel="stylesheet" />
-
-<!-- jQuery (necessary for Select2) -->
-<script src="path_to_jquery/jquery.min.js"></script>
-
-<!-- Select2 JS -->
-<script src="path_to_select2_js/select2.min.js"></script>
-
-<!-- Select2 CSS -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-
-<!-- jQuery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<!-- Select2 JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 
 
@@ -152,7 +131,7 @@
                         <div class="card-body" >
                            
   
-                <form action="{% url 'create_debitnotes' %}" method="post" class="needs-validation" enctype="multipart/form-data"onsubmit="return validatedebit()" novalidate>
+                <form action="{% url 'create_debitnotes' %}" method="post" class="needs-validation" enctype="multipart/form-data" onsubmit="return validatedebit()" novalidate>
                     {% csrf_token %}
                     <div class="page-content">
                         <div class="card">
@@ -182,7 +161,7 @@
         <!-- Left Side -->
         <div class="col-md-1"></div>
         <div class="col-md-5">
-            <label class="col-form-label" for="customer">Party</label>
+            <label class="col-form-label">Party</label>
             <div class="d-flex">
                 <select name="customername" id="customer" class="form-control border-secondary">
                     <option value="" selected hidden>Select or Search Party</option>
@@ -232,7 +211,7 @@
             <label class="col-form-label"> Date</label>
             <input type="date" class="form-control border-secondary" name="debitdate" id="debitdate" style="color: black;background-color: white;" value='{{tod}}'>
             <label class="col-form-label ">Place of Supply</label>
-            <select type="text" class="form-control border-secondary" id="plosu" name="placosupply" style="color: black;background-color: white;">
+            <select type="text" class="form-control border-secondary" id="plosu" name="placosupply" style="color: black;background-color: white;" required>
                 <option value="" selected hidden>Select</option>
                 <option value="State">State</option>
                 <option value="Other State">Other State</option>
@@ -267,7 +246,7 @@
                                                             <td class="nnum" style="text-align: center; color: black;">1</td>
                                                             <td>
                                                                 <div class="d-flex">
-                                                                    <select name='product[]' id="product1" class="form-control border-secondary product" onchange="changeprd(this.id,this.value)" style="color: black; background-color: white; width: 150px;">
+                                                                    <select name='product[]' id="product1" class="form-control border-secondary product" onchange="changeprd(this.id,this.value)" style="color: black; background-color: white; width: 150px;" required>
                                                                         <option value="" selected hidden>Select Product</option>
                                                                         {% for i in item %}
                                                                             {% if i.cid_id == cmp.cid %} 
@@ -902,9 +881,8 @@
     function validatedebit() {
         var customer = document.getElementById('customer').value;
         var plosu = document.getElementById('plosu').value;
-        var pay_method = document.getElementById('pay_method').value;
-        var cheque_id = document.getElementById('cheque_id').value;
-        var upi_id = document.getElementById('upi_id').value;
+       
+
 
         if (customer === '') {
             alert('Please select a customer');
@@ -913,20 +891,7 @@
             alert('Please select place of supply');
             return false;
         }
-        if (pay_method === ''){
-            alert('Please select a Payment Method');
-            return false;
-        }else if(pay_method === 'Cheque'){
-            if (cheque_id === ''){
-                alert('Add a cheque number');
-                return false;
-            }
-        }else if(pay_method === 'UPI'){
-            if (upi_id === ''){
-                alert('Add a UPI number');
-                return false;
-            }
-        }
+
         var table = document.getElementById('tab_logic');
         var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         for (var i = 1; i <= rows.length; i++) {
@@ -1072,6 +1037,7 @@
         
     });
 
+    
 
 
 
@@ -1086,7 +1052,7 @@
             success: function(response) {
                 id_list = response.id_list
                 party_list = response.party_list
-                console.log(party_list)
+                
                 var $select = $(document.getElementById('customer'));
                 var selectize = $select[0].selectize;
                 for(let i=0; i<id_list.length;i++){
@@ -1522,7 +1488,7 @@ $(document).ready(function () {
 </script>
 
 <script>
-    var inputElement = document.getElementById('partyphno');
+    var inputElement = document.getElementById('contact');
     inputElement.addEventListener('input', function() {
         checkphone(this);
     });
@@ -1626,6 +1592,8 @@ $('#contact').blur(function() {
         });
     });
 
+
+
     $(document).ready(function () {
         $('.product').selectize({
             sortField: 'value',
@@ -1705,15 +1673,7 @@ $('#contact').blur(function() {
 
 
 
-<script>
-    $(document).ready(function() {
-        $('#customer').select2({
-            placeholder: "Select or Search Party",
-            allowClear: true, // Adds an (x) icon to clear the selection
-            width: '100%' // Adjust the width as needed
-        });
-    });
-</script>
+
 
 
 {% endblock %}
