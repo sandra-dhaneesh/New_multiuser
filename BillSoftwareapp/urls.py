@@ -57,7 +57,8 @@ urlpatterns = [
     path('share_paymentin_to_email/<int:id>',views.sharePaymentInToEmail,name='sharePaymentInToEmail'),
     path('check_contact_exists',views.check_contact_exists,name='check_contact_exists'),
     path('check_email_exists',views.check_email_exists,name='check_email_exists'),
-    path('check_hsn_exists',views.check_hsn_exists,name='check_hsn_exists')
+    path('check_hsn_exists',views.check_hsn_exists,name='check_hsn_exists'),
+    path('check_gst_exists',views.check_gst_exists,name='check_gst_exists')
 
  
 

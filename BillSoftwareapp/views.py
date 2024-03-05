@@ -395,7 +395,7 @@ def add_debitnote(request):
   allmodules = modules_list.objects.filter(company=staff.company, status='New').first()
   item=ItemModel.objects.filter(company=cmp,user=cmp.user)
   item_units = UnitModel.objects.filter(user=cmp.user,company=staff.company)
-  bank=BankModel.objects.filter(company=cmp,user=cmp.user)
+ 
   debt_count = purchasedebit.objects.filter(company=cmp).order_by('-pdebitid').first()
   
   if debt_count:
@@ -403,7 +403,7 @@ def add_debitnote(request):
   else:
     next_count=1
 
-  return render(request,'adddebitnotes.html',{'staff':staff,'allmodules':allmodules,'Party':Party,'item':item,'count':next_count,'tod':tod,'item_units':item_units,'bank':bank,'cmp':cmp})
+  return render(request,'adddebitnotes.html',{'staff':staff,'allmodules':allmodules,'Party':Party,'item':item,'count':next_count,'tod':tod,'item_units':item_units,'cmp':cmp})
 
 def add_parties(request):
   
@@ -618,6 +618,9 @@ def savecustomer1(request):
         elif party.objects.filter(email=email, company=cmp).exists():
             messages.info(request, 'Sorry, Email already exists')
             return redirect('add_debitnote')
+        elif party.objects.filter(gst_no=gst_no, company=cmp).exists():
+            messages.info(request, 'Sorry, GST number already exists')
+            return redirect('add_debitnote')
         else:
             part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address,
                          email=email, openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
@@ -625,7 +628,7 @@ def savecustomer1(request):
                          additionalfield3=additionalfield3, company=cmp, user=cmp.user)
 
             part.save()
-            return JsonResponse({'success': True})
+            return JsonResponse({'success': True, 'id':part.id})
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
@@ -686,14 +689,14 @@ def saveitem1(request):
 
 
 def item_dropdowns(request):
-  if request.user.is_company:
-      cmp = request.user.company
-  else:
-      cmp = request.user.employee.company
+  sid = request.session.get('staff_id')
+  staff =  staff_details.objects.get(id=sid)
+  cmp = company.objects.get(id=staff.company.id)
+  print(sid, staff, cmp)
   options = {}
-  option_objects = ItemModel.objects.all(company=cmp)
+  option_objects = ItemModel.objects.filter(company=cmp)
   for option in option_objects:
-      options[option.id] = [option.item_name]
+      options[option.id] = [option.id, option.item_name]
   return JsonResponse(options)
 
 def custdata1(request):
@@ -771,7 +774,8 @@ def itemdetail(request):
   igst = itm.item_igst
   price = itm.item_purchase_price
   qty = itm.item_current_stock
-  return JsonResponse({'hsn':hsn, 'gst':gst, 'igst':igst, 'price':price, 'qty':qty})
+  id = itm.id
+  return JsonResponse({'hsn':hsn, 'gst':gst, 'igst':igst, 'price':price, 'qty':qty, 'id':id})
 
 
 def debthistory(request):
@@ -795,24 +799,14 @@ def debthistory(request):
             return JsonResponse({'error': 'Staff ID not found in session.'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request method or missing ID parameter.'}, status=400)
-
 def delete_debit(request,id):
-    sid = request.session.get('staff_id')
-    staff = get_object_or_404(staff_details, id=sid)
-    cmp = get_object_or_404(company, id=staff.company.id)
-
-    # Retrieve the purchasedebit instance to be deleted
-    pdebt = get_object_or_404(purchasedebit, pdebitid=id)
-
-    # Ensure the purchasedebit instance belongs to the user's company
-    if pdebt.company != cmp:
-        return redirect('view_purchasedebit')  # Redirect to view_purchasedebit if not authorized
-
-    # Delete related purchasedebit1 instances and the purchasedebit instance itself
-    purchasedebit1.objects.filter(pdebit=pdebt, company=cmp).delete()
-    pdebt.delete()
-
-    return redirect('view_purchasedebit')
+  sid = request.session.get('staff_id')
+  staff = staff_details.objects.get(id=sid)
+  cmp = company.objects.get(id=staff.company.id) 
+  pdebt = purchasedebit.objects.get(pdebitid=id)
+  purchasedebit1.objects.filter(pdebit=pdebt,company=cmp).delete()
+  pdebt.delete()
+  return redirect('view_purchasedebit')
 
 
 def details_debitnote(request,id):
@@ -1042,17 +1036,7 @@ def import_debitnote(request):
                                   company=cmp,staff=staff)
       
       pdebt = purchasedebit.objects.last()
-      if debitsheet[4] == 'Cheque':
-        pdebt.payment_type = 'Cheque'
-        pdebt.cheque_no = debitsheet[5]
-      elif debitsheet[4] == 'UPI':
-        pdebt.upi_no = debitsheet[5]
-      else:
-        if debitsheet[4] != 'Cash':
-          bank = BankModel.objects.get(bank_name=debitsheet[4],company=cmp)
-          pdebt.payment_type = bank
-        else:
-          pdebt.payment_type = 'Cash'
+
       pdebt.save()
 
       purchasedebit.objects.filter(company=cmp).update(tot_debt_no=totval )
@@ -1231,6 +1215,13 @@ def check_hsn_exists(request):
     hsn= request.GET.get('hsn')
     
     if ItemModel.objects.filter(item_hsn=hsn).exists():
+        return JsonResponse({'exists': True})
+    return JsonResponse({'exists':False})
+
+def check_gst_exists(request):
+    gstin= request.GET.get('gstin')
+    
+    if party.objects.filter(gst_no=gstin).exists():
         return JsonResponse({'exists': True})
     return JsonResponse({'exists':False})
 

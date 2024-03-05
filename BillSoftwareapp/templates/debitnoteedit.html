@@ -333,7 +333,7 @@ body {
                                                         </td>
 
                                                         <td style="width:5%">
-                                                            <button type="button" id="{{forloop.counter}}" class="btn btn-outline-info  font-weight-bold clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button><br>
+             
                                                             <button type="button" id="{{forloop.counter}}" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
                                                         </td>
                                                     </tr>
@@ -481,7 +481,7 @@ body {
                                             <input style="color: black;" class="form-control border-dark fw-bolder" type="text" placeholder="ITEM NAME" autocomplete="off" id="item_name" name="item_name" required>
                                         </div>
                                         <div class="col-md-3">
-                                            <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" id="hsn" name="hsn" onchange="checkhsn(this)" required>
+                                            <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" autocomplete="off" id="hsn" name="hsn" onchange="checkhsn(this)" required>
                                             <label id="hsn_error" style="color:red;"></label>
                                             <label style="color: rgb(101, 3, 3);"></label>
                                             <div class="text-danger m-2" id="warnhsn"></div>
@@ -1037,53 +1037,7 @@ $('#plosu').change(function() {
     }
 </script>
 
-<script>
-    $(document).ready(function() {
-        $("#pay_method").change(function() {
-            var x=$('#pay_method').val();
-            if(x==='Cash'){
-                $('#chequediv').hide()
-                $('#bnkdiv').hide()
-                $('#upidiv').hide()
-                document.getElementById('cheque_id').value=null
-                document.getElementById('upi_id').value=null
-                document.getElementById('bnk_id').value=null
-            } else if(x==='Cheque') {
-                $('#chequediv').show()
-                $('#bnkdiv').hide()
-                $('#upidiv').hide()
-                document.getElementById('upi_id').value=null
-                document.getElementById('bnk_id').value=null
-            } else if(x==='UPI') {
-                $('#upidiv').show()
-                $('#bnkdiv').hide()
-                $('#chequediv').hide()
-                document.getElementById('cheque_id').value=null
-                document.getElementById('bnk_id').value=null
-            } else {
-                $('#bnkdiv').show()
-                $('#chequediv').hide()
-                $('#upidiv').hide()
-                document.getElementById('cheque_id').value=null
-                document.getElementById('upi_id').value=null
 
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'bankdata1' %}",
-                    data: {
-                        id: x,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'
-                    },
-                    success: function (response) {
-                        document.getElementById('cheque_id').value=null
-                        document.getElementById('upi_id').value=null
-                        document.getElementById("bnk_id").value = response.bank_no;
-                    }
-                });
-            }
-        });
-    });
-</script>
 
 <script>
     function changeprd(id,value){
@@ -1234,9 +1188,9 @@ $('#plosu').change(function() {
         });
     }
 
-
     $(document).on("click","#itemsave",function(){
         var item_name = document.getElementById('item_name').value;
+        var item_hsn=document.getElementById('hsn').value;
 
         if ($('#inclusive').prop('checked')) {
             tax= $('#inclusive').val();
@@ -1247,7 +1201,11 @@ $('#plosu').change(function() {
 
         if (item_name === ''){
             alert('Please provide an Item Name');
-        }else{
+        } else if(item_hsn === ''){
+            alert('Please provide a HSN number');
+            return false;
+        }
+        else{
             $.ajax({
                 type : 'POST',
                 url:"{% url 'saveitem1' %}",
@@ -1270,12 +1228,15 @@ $('#plosu').change(function() {
                 success: function(response) {
                     document.getElementById("modalItem").reset();
                     $('#newitem').modal('hide');
-                    reloadItem();
-                 
+                    reloadItems();
+                  
                 },
+               
             });  
+
         }      
     });
+
 
     function reloadItem() {
         $.ajax({
@@ -1286,17 +1247,38 @@ $('#plosu').change(function() {
             csrfmiddlewaretoken: '{{ csrf_token }}',
 
             success: function(data) {
-                id_list = data.id_list
-                product_list = data.product_list
+                console.log(data);
                 var table = document.getElementById('tab_logic');
                 var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+                
+               
                 for (var i = 1; i <= rows.length; i++) {
-                    var $select = $(document.getElementById('product'+i));
-                    var selectize = $select[0].selectize;
-                    for(let i=0; i<id_list.length;i++){
-                        selectize.addOption({value:id_list[i],text:product_list[i]});
-                    }
+                    // var $select = $(document.getElementById('product'+i));
+                    // var selectize = $select[0].selectize;
+                    // itmdropdown = document.getElementById('product'+i)
+                    // var selectedIndex = itmdropdown.selectedIndex;
+
+                    // $.each(data, function(key, value) {
+                    //     selectize.addOption({value:value[0],text:value[0]});
+                    //     selectize.addItem(value[0])
+                    // });
+                    // selectize.setValue(selectedIndex)
+
+                    itmdropdown = document.getElementById('product'+i)
+                    var selectedIndex = itmdropdown.selectedIndex;
+                    var selectedOption = itmdropdown.options[selectedIndex];
+                    var selectedValue = selectedOption.value;
+                    var selectedText = selectedOption.text;
+                    
+                    var dropdown = $(`#product${i}`);
+                    dropdown.empty();
+                    dropdown.append(`<option ${selectedValue} selected hidden>${selectedText}</option>`);
+                    $.each(data, function(key, value) {
+                        dropdown.append($('<option></option>').attr('value', key).text(value).val(key));
+                    });
                 }
+                console.log('reloaded');
             },
             error: function(xhr, status, error) {
                 console.error(xhr.responseText);
@@ -1304,6 +1286,39 @@ $('#plosu').change(function() {
         });
     }
 
+    
+    function reloadItems() {
+        $.ajax({
+            url: "{% url 'item_dropdowns' %}",
+            type: "GET",
+            dataType: "json",
+            data: {},
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+
+            success: function(data) {
+                $('#items-table-body tr').each(function () {
+                    var currentRow = $(this);
+                    var html = currentRow.html();
+                    
+                    if (html !== '') {
+                        currentRow.find(".items-available").find("li").remove();
+
+                        $.each(data, function(key, value) {
+                            currentRow.find(".items-available").append(`<li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),'${value[0]}','${value[1]}')">${value[1]}</li>`);
+                        });
+
+                        console.log('Success');
+                    }
+            });
+
+
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+
+        });
+    }
 
     $(document).ready(function () {
     $('#customer').on('change', function() {
@@ -1423,33 +1438,31 @@ $(document).ready(function () {
     });
 });
 
-
-    $(document).ready(function(){
+$(document).ready(function(){
         $('#add').click(function(){
             var roinc = $("#items-table-body tr").length;
             roinc++
             $('#items-table-body').append(
                 `<tr id='addr0${roinc}'>
                     <td class = 'nnum' style="text-align: center; width:2%"">${roinc}</td>
-
                     <td style="width:21%">
                         <div class="d-flex">
-                            <select name='product[]' id="product${roinc}" class="form-control border-secondary product"  onchange="changeprd(this.id,this.value)" style="color: black; background-color: white;">
+                            <select name='product[]' id="product${roinc}" class="form-control border-secondary product" onchange="changeprd(this.id,this.value)" style="color: black; background-color: white;">
                                 <option value="" selected hidden>Select Product</option>
                                 {% for i in item %}
                                     {% if i.cid_id == cmp.cid %}
-                                        <option  value="{{ i.id  }}">{{ i.item_name  }} </option>
+                                        <option value="{{ i.id }}">{{ i.item_name }}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>&nbsp;&nbsp;&nbsp;
-
-                            <button id="modal_closing" type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#newitem" data-bs-whatever="@mdo">
+    
+                            <button id="modal_closing" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newitem" data-bs-whatever="@mdo">
                                 <span class="fa fa-plus"></span>
                             </button>
                         </div>
                     </td>
 
-                    <td tyle="width:13%">
+                    <td tyle="width:12%">
                         <input type="text" name='hsn[]' id="hsn${roinc}" class="form-control border-secondary" style="color: black; background-color: white;" readonly />
                     </td>
 
@@ -1478,13 +1491,16 @@ $(document).ready(function () {
                     <td hidden><input type="number" step="any" name='taxamount1' id="taxamount${roinc}" class="form-control border-secondary taxamount" /></td>
                     
                     <td style="width:13%">
-                        <button type="button" id="${roinc}" class="btn btn-outline-info font-weight-bold clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button>
-                        <br>
+                        
                         <button type="button" id="${roinc}" class="btn btn-danger px-2 mx-1 py-1 remove_row fa fa-close"></button>
                     </td>
                 </tr>`
             );
             productsearch(roinc)
+            
+            refreshIndex();
+            
+            
         });
     });
 
@@ -1725,9 +1741,9 @@ $(document).ready(function () {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('customersave').addEventListener('click', function() {
-            history.go(0);
-        });
+        // document.getElementById('customersave').addEventListener('click', function() {
+        //     history.go(0);
+        // });
 
         document.getElementById('itemsave').addEventListener('click', function() {
             history.go(0);
